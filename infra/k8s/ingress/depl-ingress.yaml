@@ -2,16 +2,22 @@ apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: minimal-ingress
-  annotations:
-    nginx.ingress.kubernetes.io/rewrite-target: /
 spec:
   rules:
     - http:
         paths:
-          - path: /testpath
+          - path: /ing
             pathType: Prefix
             backend:
               service:
-                name: test
+                name: ing-srv
+                port:
+                  number: 80
+
+          - path: /rec
+            pathType: Prefix
+            backend:
+              service:
+                name: rec-srv
                 port:
                   number: 80
