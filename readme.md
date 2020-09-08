@@ -875,3 +875,7 @@ jobs:
 
 ## Deployment and testing
 
+### AWS CLI and kubectl
+
+kubectl is the tool used to connect to a kubernetes context
+
