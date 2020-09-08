@@ -1,6 +1,3 @@
-
-# Microservices with Spring Boot and Kubernetes
-
 ## Introduction
 Microservices is a software architectural design where a 'single' application is made up of a collection of different services that can be deployed independently. Though complex to initially set up, it is my general opinion that microservices offer benefits that outweigh this initial complexity.
 
@@ -105,23 +102,26 @@ In the ingredients folder add the following files and folders
 In the pom.xml add the following dependencies
 
 ```xml
+// To enable Rest
 <dependency>
     <groupId>org.springframework.boot</groupId>
     <artifactId>spring-boot-starter-web</artifactId>
 </dependency>
 
+// For Swagger Documentation
 <dependency>
     <groupId>org.springdoc</groupId>
     <artifactId>springdoc-openapi-ui</artifactId>
     <version>1.2.32</version>
 </dependency>
 
-
+// To Enable MySQL Data
 <dependency>
     <groupId>org.springframework.boot</groupId>
     <artifactId>spring-boot-starter-data-jpa</artifactId>
 </dependency>
 
+//To connect to MySQL
 <dependency>
     <groupId>mysql</groupId>
     <artifactId>mysql-connector-java</artifactId>
@@ -132,8 +132,8 @@ In the pom.xml add the following dependencies
 
 ## Connection to the database
 
-In the application.properties files add the below properties.
-We shall store these variables in the environment later on
+In the application.properties files add the below configuration properties.
+We shall store some of these variables in the environment later on
 
 ```bash
 
@@ -141,13 +141,29 @@ spring.datasource.url=${DB_URL}
 spring.datasource.username=${DB_USER}
 spring.datasource.password=${DB_PASSWORD}
 
+# Enable Auto Updating of new tables and table columns
+spring.jpa.hibernate.ddl-auto=update
+
+# Specify the jdbc driver
+spring.datasource.driver-class-name=com.mysql.cj.jdbc.Driver
+
+#Direct hibernate to work with mysql 8
+spring.jpa.properties.hibernate.dialect = org.hibernate.dialect.MySQL8Dialect
+
+#Configure Table and Column Naming strategies
+spring.jpa.hibernate.naming.implicit-strategy=org.hibernate.boot.model.naming.ImplicitNamingStrategyLegacyJpaImpl
+spring.jpa.hibernate.naming.physical-strategy=org.hibernate.boot.model.naming.PhysicalNamingStrategyStandardImpl
+
+
 ```
 
 ## Create the models
 
-Spring Boot uses Entities to map a class to an Entity in the Database, in this case a table. Spring Boot will automatically create these tables and map these attributes to columns in the tables.
+Spring Boot uses Entities to map a class to an Entity in the Database, in this case a table. Spring Boot will automatically create these tables and map these attributes to columns in the tables based on the @Entity, @Id, @Column annotations.
 
-Create the Ingredients class in the Ingredients.java file as shown below using setters and getters to acheive encapsulation
+The GenerationType.IDENTITY is used to instruct the primary key to be table specific rather than project wide.
+
+Create the Ingredients class in the Ingredients.java file as shown below using setters and getters to acheive encapsulation.
 
 ```java
 
@@ -202,11 +218,11 @@ public class Ingredients {
 
 ## Set up the Repositories
 
-Repositories are Spring Boot's way of providing interfaces between the logical functions and the database entities to enable simple and complex CRUD operations to the database.
+Repositories are Spring Boot's way of providing interfaces between the business logic and the database entities to enable simple and complex CRUD operations to the database.
 
 Extend the JPA Repository to expose a set of relevant methods that will in the background generate relevant mysql queries as shown below.
 
-remember to pass in the model class name and the data type of the primary key field
+Remember to pass in the model class name and the data type of the primary key field
 
 
 ```java
@@ -223,14 +239,15 @@ public interface IngredientsRepos extends JpaRepository<Ingredients, Integer> {
 
 }
 
-
 ```
 
 ## Configure Responses
 
-To achieve uniformity in our responses, create 2 files GeneralResponse.java and StatusResponse.java as shown below.
+To achieve uniformity in our responses, create 2 files responses/GeneralResponse.java and responses/StatusResponse.java as shown below.
 
-The GeneralResponse class will have a dynamic attribute to help it accomodate any type of data expected in a response
+The GeneralResponse class will have a dynamic data attribute to help it accomodate any type of data expected in a get method response.
+
+The StatusResponse class will be focuses on responses that do not need to return data.
 
 ```java
 
@@ -354,9 +371,48 @@ public class GeneralResponse<T> {
 
 ```
 
+## Configure Requests
+
+It is not advisable to use Model classes in  making http requests since they may have fields such as dates etc.
+
+To avoid this define a request class in the requests/IngredientsRequest.java as shown
+
+```java
+
+package com.chef.ingredients.requests;
+
+public class IngredientsRequest {
+
+    private String email;
+
+    private String name;
+
+    public String getEmail() {
+        return email;
+    }
+
+    public void setEmail(String email) {
+        this.email = email;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+}
+
+
+```
+
 ## Customize Exceptions
 
-Customize Exceptions by using the classes below in the exceptions folder
+Customize Exceptions by using the classes below in the exceptions folder.
+
+This should be done to give Exceptions message flexibility.
 
 
 ```java
@@ -387,6 +443,8 @@ public class CustomException extends RuntimeException {
 
 ```
 
+Use this class to register CustomException as a valid project exception.
+
 ```java
 package com.chef.ingredients.exceptions;
 
@@ -414,7 +472,7 @@ public class CustomizedResponseEntityExceptionHandler extends ResponseEntityExce
     }
 
     @ExceptionHandler(CustomException.class)
-    public final ResponseEntity<StatusResponse> recordNotFoundExceptionHandling(CustomException ex,
+    public final ResponseEntity<StatusResponse> customExceptionHandling(CustomException ex,
             WebRequest request) {
         StatusResponse statusResponse = new StatusResponse(LocalDateTime.now().plusHours(3), ex.getMessage(),
                 ex.getCode());
@@ -429,7 +487,8 @@ public class CustomizedResponseEntityExceptionHandler extends ResponseEntityExce
 With respect to MVC, separate the business logic into the services folder. 
 Define the IngredientsService.java as shown below.
 
-The autowired annotation is used to inject the Ingredients Repository to the service class.
+The @Autowired annotation is used to inject the Ingredients Repository as a dependency to the service class.
+Repository Methods can then be accessed using the injected dependency.
 
 
 ```java
@@ -521,7 +580,7 @@ public class IngredientsService {
 
 ## Set up the controllers
 
-The Rest controller defined by the @RestController is used to define the Rest endpoints to access the Rest API.
+The Rest controller defined by the @RestController is used to define the Rest endpoints that will be used to access the Rest API.
 
 The @Crossorigin annotation is used to define cors.
 
@@ -633,11 +692,14 @@ While in the ingredients directory, use the following command to run your projec
 
 ```bash
 mvn spring-boot:run
+
 ```
 
 The project should run successfully.
 
 ## Dockerfile
+
+Set up your dockerfile as shown below with the correct environment variables.
 
 ```bash
 FROM openjdk:8-jdk-alpine
@@ -645,11 +707,16 @@ ARG JAR_FILE=target/*.jar
 COPY ${JAR_FILE} app.jar
 ENTRYPOINT ["java","-jar","/app.jar"]
 
+ENV DB_URL=jdbc:mysql://<host>:3306/ingredients
+ENV DB_USER=<name>
+ENV DB_PASSWORD=<passs>
+
+
 ```
 
 ## Create your Kubernetes cluster
 
-
+Head over to [AWS EKS]()
 
 ## Set up github
 
@@ -877,5 +944,55 @@ jobs:
 
 ### AWS CLI and kubectl
 
-kubectl is the tool used to connect to a kubernetes context
+kubectl is the tool used to connect to a kubernetes context.
 
+Download and install [AWS CLI](https://docs.aws.amazon.com/cli/latest/userguide/install-cliv2-linux.html#cliv2-linux-install)
+
+Configure AWS with command
+
+```bash
+ aws configure
+
+```
+
+Download and install [Kubectl](https://kubernetes.io/docs/tasks/tools/install-kubectl/) and set up the EKS cluster context using this command
+
+```bash
+aws eks --region region-code update-kubeconfig --name cluster_name
+
+```
+
+You can now run apply, debug and delete commands to your cluster such as
+
+```bash
+
+kubectl get svc
+
+kubectl get deployments
+
+kubectl get pods
+
+kubectl logs <pod-id>
+
+kubectl delete pods --all --all-namespace
+
+kubectl apply -f <path to yaml file>
+
+```
+
+### Test with Postman
+
+Under the AWS EC2 Service, In the Load Balancer, you will find the Network load balancer created by ingress.
+
+Use the provided DNS Name as the Gateway URL to your cluster.
+
+You can send requests to your notifications service
+
+
+## Conclusion and Remarks
+
+This is a minimalist Microservices set up with kubernetes.
+
+This Example is focused on AWS, however this can also be set up with other cloud providers.
+
+In a production environment, more security considerations should be put in place.

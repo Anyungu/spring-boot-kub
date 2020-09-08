@@ -8,4 +8,4 @@ ENV DB_USER=admin
 ENV DB_PASSWORD=kurosaki99
 
 
-##Deploy etc with envaga loll reload
+##Deploy etc with envaga loll reload new DB
