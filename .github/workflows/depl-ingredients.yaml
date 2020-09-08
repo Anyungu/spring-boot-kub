@@ -33,17 +33,6 @@ jobs:
           repository: anyungu/ing
           tags: latest
 
-        #   build_args: DB_URL, DB_PASSWORD, DB_USER
-        # env:
-        #   DB_URL: ${{ secrets.DB_URL }}
-        #   DB_USER: ${{ secrets.DB_USER }}
-        #   DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
-      - name: Lol
-        run: echo " ${{ secrets.DB_URL }} "
-
-      - name: Lola
-        run: echo ${{ secrets.DB_URL }}
-
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v1
         with:
