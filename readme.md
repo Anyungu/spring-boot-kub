@@ -747,30 +747,32 @@ Define rules for the ingress as shown below
 apiVersion: networking.k8s.io/v1beta1
 kind: Ingress
 metadata:
-  name: minimal-ingress
+  name: k8s-learn-ingress
+  annotations:
+    kubernetes.io/ingress.class: nginx
+    nginx.ingress.kubernetes.io/use-regex: "true"
 spec:
+  # tls:
+  #   - hosts:
+  #       - k8s24.lanthanion.com
+  #     secretName: k8s-learn-tls
   rules:
+    #  - host: k8s24.lanthanion.com
     - http:
         paths:
-          - path: /ing
-            pathType: Prefix
+          - path: /ingredients/?(.*)
             backend:
-              service:
-                name: ing-srv
-                port:
-                  number: 80
+              serviceName: ing
+              servicePort: 80
 
-          - path: /rec
-            pathType: Prefix
-            backend:
-              service:
-                name: rec-srv
-                port:
-                  number: 80
 
 ```
 
 
 ## Github actions
 
-Github
+In the .github/workflows/depl-manifests file define the following workflows
+
+```yaml
+
+```

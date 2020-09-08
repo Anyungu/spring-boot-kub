@@ -27,5 +27,8 @@ jobs:
       - name: set up the Ingress controller
         run: kubectl apply -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/controller-v0.35.0/deploy/static/provider/aws/deploy.yaml
 
+      - name: Delete webhook validation
+        run: kubectl delete -A ValidatingWebhookConfiguration ingress-nginx-admission
+
       - name: Run manifests
         run: kubectl apply -f infra/k8s/ --recursive --kubeconfig /home/runner/.kube/config
