@@ -11,7 +11,7 @@ spec:
   #       - k8s24.lanthanion.com
   #     secretName: k8s-learn-tls
   rules:
-    #  - host: k8s24.lanthanion.com com reload everything
+    #  - host: k8s24.lanthanion.com com reload everything lol
     - http:
         paths:
           - path: /ingredients/?(.*)
