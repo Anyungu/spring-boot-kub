@@ -1,0 +1,38 @@
+name: depl-ingredients
+
+on:
+  push:
+    branches:
+      - master
+    paths:
+      - ingredients/**
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Build and push Docker images
+        uses: docker/build-push-action@v1
+        with:
+          path: ingredients
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+          repository: anyungu/ing
+          tags: latest
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: eu-west-1
+
+      - name: Set up kubernetes context
+        run: aws eks --region {{ secrets.REGION_CODE }} update-kubeconfig --name {{ secrets.CLUSTER_NAME }}
+
+      - name: Deploy
+        run: |
+          kubectl rollout restart deployment/auth

@@ -1,0 +1,43 @@
+apiVersion: apps/v1
+
+kind: Deployment
+
+metadata:
+  name: ing
+  labels:
+    app: ing
+
+spec:
+  replicas: 3
+
+  selector:
+    matchLabels:
+      app: ing
+
+  template:
+    metadata:
+      labels:
+        app: ing
+
+    spec:
+      containers:
+        - name: ing
+          image: anyungu/ing
+          ports:
+            - containerPort: 8080
+      serviceAccountName: ing
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: ing-srv
+
+spec:
+  type: NodePort
+  selector:
+    app: ing
+  ports:
+    - port: 80
+      name: ing
+      targetPort: 8080
