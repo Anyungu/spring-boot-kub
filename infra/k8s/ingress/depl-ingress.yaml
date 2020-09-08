@@ -16,5 +16,5 @@ spec:
         paths:
           - path: /ingredients/?(.*)
             backend:
-              serviceName: ing
+              serviceName: ing-srv
               servicePort: 80

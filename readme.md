@@ -771,8 +771,112 @@ spec:
 
 ## Github actions
 
-In the .github/workflows/depl-manifests file define the following workflows
+### Github actions for deploying kubernetes manifestss
+
+In the .github/workflows/depl-manifests file define the following workflow. 
+This will be used to apply the kuberenetes yaml configs that we have written.
 
 ```yaml
 
+name: depl-manifests
+
+on:
+  push:
+    branches:
+      - master
+    paths:
+      - infra/k8s/**
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: eu-west-1
+
+      - name: Set up kubernetes context
+        run: aws eks --region ${{ secrets.REGION_CODE }} update-kubeconfig --name ${{ secrets.CLUSTER_NAME }}
+
+      - name: set up the Ingress controller
+        run: kubectl apply -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/controller-v0.35.0/deploy/static/provider/aws/deploy.yaml
+
+      - name: Delete webhook validation
+        run: kubectl delete -A ValidatingWebhookConfiguration ingress-nginx-admission
+
+      - name: Run manifests
+        run: kubectl apply -f infra/k8s/ --recursive --kubeconfig /home/runner/.kube/config
+
+
 ```
+
+### Github actions for redeploying the ingredients service
+
+In the .github/workflows/depl-manifests file define the following workflow. 
+This will be used to apply the kuberenetes yaml configs that we have written.
+
+```yaml
+
+name: depl-ingredients
+
+on:
+  push:
+    branches:
+      - master
+    paths:
+      - ingredients/**
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Set up JDK 8
+        uses: actions/setup-java@v1
+        with:
+          java-version: 8
+
+      - name: Maven Package
+        run: |
+          cd ingredients
+          mvn -B clean package -DskipTests
+
+      - name: Build and push Docker images
+        uses: docker/build-push-action@v1
+        with:
+          path: ingredients
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+          repository: anyungu/ing
+          tags: latest
+        env:
+          DB_URL: ${{secrets.DB_URL}}
+          DB_USER: ${{secrets.DB_USER}}
+          DB_PASSWORD: ${{secrets.DB_PASSWORD}}
+
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: eu-west-1
+
+      - name: Set up kubernetes context
+        run: aws eks --region ${{ secrets.REGION_CODE }} update-kubeconfig --name ${{ secrets.CLUSTER_NAME }}
+
+      - name: Deploy
+        run: |
+          kubectl rollout restart deployment/ing
+
+```
+
+## Deployment and testing
+

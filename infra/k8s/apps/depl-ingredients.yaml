@@ -25,7 +25,6 @@ spec:
           image: anyungu/ing
           ports:
             - containerPort: 8080
-      serviceAccountName: ing
 
 ---
 apiVersion: v1
