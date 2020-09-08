@@ -8,4 +8,4 @@ ENV DB_USER = ${DB_USER}
 ENV DB_PASSWORD = ${DB_PASSWORD}
 
 
-##Deploy etc
+##Deploy etc with env
