@@ -14,7 +14,7 @@ spec:
     #  - host: k8s24.lanthanion.com
     - http:
         paths:
-          - path: /ingredients?(.*)
+          - path: /ingredients/?(.*)
             backend:
               serviceName: ing
               servicePort: 80
