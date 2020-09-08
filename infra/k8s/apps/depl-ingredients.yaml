@@ -27,6 +27,7 @@ spec:
             - containerPort: 8080
       serviceAccountName: ing
 
+
 ---
 apiVersion: v1
 kind: Service
