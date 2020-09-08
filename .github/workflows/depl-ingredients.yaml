@@ -45,7 +45,7 @@ jobs:
           aws-region: eu-west-1
 
       - name: Set up kubernetes context
-        run: aws eks --region {{ secrets.REGION_CODE }} update-kubeconfig --name {{ secrets.CLUSTER_NAME }}
+        run: aws eks --region ${{ secrets.REGION_CODE }} update-kubeconfig --name ${{ secrets.CLUSTER_NAME }}
 
       - name: Deploy
         run: |
