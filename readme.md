@@ -116,11 +116,6 @@ In the pom.xml add the following dependencies
     <version>1.2.32</version>
 </dependency>
 
-<dependency>
-    <groupId>org.springdoc</groupId>
-    <artifactId>springdoc-openapi-ui</artifactId>
-    <version>1.2.32</version>
-</dependency>
 
 <dependency>
     <groupId>org.springframework.boot</groupId>
