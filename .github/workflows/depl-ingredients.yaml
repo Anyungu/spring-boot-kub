@@ -37,6 +37,12 @@ jobs:
           DB_USER: ${{ secrets.DB_USER }}
           DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
 
+      - name: Lol
+        run: echo " ${{ secrets.DB_URL }} "
+
+      - name: Lola
+        run: echo ${{ secrets.DB_URL }}
+
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v1
         with:
