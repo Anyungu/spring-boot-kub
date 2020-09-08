@@ -3,7 +3,7 @@ package com.chef.ingredients;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
-//run run
+//run run run
 @SpringBootApplication
 public class IngredientsApplication {
 
