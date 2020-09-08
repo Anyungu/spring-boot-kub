@@ -735,3 +735,7 @@ spec:
 ```
 
 ## Define the Kubernetes ingress
+
+Use the Nginx ingress controller to direct traffic:
+
+Select the cloud appropriate command from this [link](https://kubernetes.github.io/ingress-nginx/deploy)
