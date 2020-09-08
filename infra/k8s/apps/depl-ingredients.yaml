@@ -8,7 +8,7 @@ metadata:
     app: ing
 
 spec:
-  replicas: 2
+  replicas: 3
 
   selector:
     matchLabels:
