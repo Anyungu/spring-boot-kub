@@ -738,4 +738,37 @@ spec:
 
 Use the Nginx ingress controller to direct traffic:
 
-Select the cloud appropriate command from this [link](https://kubernetes.github.io/ingress-nginx/deploy)
+Select the cloud appropriate command from this [link](https://kubernetes.github.io/ingress-nginx/deploy). This will be applied in our cluster.
+
+Define rules for the ingress as shown below
+
+```yaml
+
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: minimal-ingress
+spec:
+  rules:
+    - http:
+        paths:
+          - path: /ing
+            pathType: Prefix
+            backend:
+              service:
+                name: ing-srv
+                port:
+                  number: 80
+
+          - path: /rec
+            pathType: Prefix
+            backend:
+              service:
+                name: rec-srv
+                port:
+                  number: 80
+
+```
+
+
+## Github actions
