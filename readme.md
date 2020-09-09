@@ -716,14 +716,17 @@ ENV DB_PASSWORD=<passs>
 
 ## Create your Kubernetes cluster
 
-Head over to [AWS EKS]()
+Head over to [AWS EKS](https://aws.amazon.com/eks/) and create a new cluster.
+
+Once the cluster is ready, Add a preferred number of t3.micro nodes as a  node group to the cluster. 
+
 
 ## Set up github
 
 Besides Repositories, we shall use github actions to automatically deploy our project to an existing cluster.
 
 Create a Github Repository.
-Ensure you have an active dockerhub accounts
+Ensure you have an active dockerhub account.
 
 Navigate to the settings tab and create the following secrets:
 
@@ -733,9 +736,7 @@ Navigate to the settings tab and create the following secrets:
 + REGION_CODE
 + DOCKER_PASSWORD
 + DOCKER_USERNAME
-+ DB_USER
-+ DB_PASSWORD
-+ DB_URL
+
 
 ## Create the kubernetes Deployment and Service Definition
 
@@ -800,9 +801,9 @@ spec:
 
 Use the Nginx ingress controller to direct traffic:
 
-Select the cloud appropriate command from this [link](https://kubernetes.github.io/ingress-nginx/deploy). This will be applied in our cluster.
+Select the cloud appropriate command from this [link](https://kubernetes.github.io/ingress-nginx/deploy). This will be applied in our cluster later on.
 
-Define rules for the ingress as shown below
+Define rules for the ingress in the infra/k8s/ingress/depl-ingresss.yaml as shown below
 
 ```yaml
 
@@ -833,10 +834,14 @@ spec:
 
 ## Github actions
 
+Set up github actions to ensure continous delivery.
+
 ### Github actions for deploying kubernetes manifestss
 
 In the .github/workflows/depl-manifests file define the following workflow. 
-This will be used to apply the kuberenetes yaml configs that we have written.
+This will be used to apply all the kuberenetes yaml configs onto our cluster.
+
+This workflow will always trigger whenever there is a change in the infra/k8s/** folder and a push/merge into master is made.
 
 ```yaml
 
@@ -845,7 +850,7 @@ name: depl-manifests
 on:
   push:
     branches:
-      - master
+      - masters
     paths:
       - infra/k8s/**
 
@@ -881,7 +886,15 @@ jobs:
 ### Github actions for redeploying the ingredients service
 
 In the .github/workflows/depl-manifests file define the following workflow. 
-This will be used to apply the kuberenetes yaml configs that we have written.
+This will be used to apply the kuberenetes configuration specific to the ingredients service.
+This will always get triggered whenever there is a change in the ingredients service.
+
+The below command will restart the ingredients deployment with the new docker image resulting from changes in the ingredients service.
+
+```bash
+kubectl rollout restart deployment/ing
+
+```
 
 ```yaml
 
@@ -942,13 +955,18 @@ jobs:
 
 ## Deployment and testing
 
+## Git Push
+A first and second push to the master branch (with changes triggering the workflows) will guarantee creation of the relevant resources to your cluster.
+
+Once a push/merge to master is completed, workflow Activity can be viewed in real time at the Actions tab in your github project repository.
+
 ### AWS CLI and kubectl
 
-kubectl is the tool used to connect to a kubernetes context.
+kubectl is the tool used to connect to a kubernetes cluster and context.
 
 Download and install [AWS CLI](https://docs.aws.amazon.com/cli/latest/userguide/install-cliv2-linux.html#cliv2-linux-install)
 
-Configure AWS with command
+Configure the AWS CLI with this command
 
 ```bash
  aws configure
@@ -979,6 +997,8 @@ kubectl delete pods --all --all-namespace
 kubectl apply -f <path to yaml file>
 
 ```
+
+More commands can be found [here](https://kubernetes.io/docs/reference/kubectl/cheatsheet/)
 
 ### Test with Postman
 
